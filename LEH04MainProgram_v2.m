@@ -1,4 +1,4 @@
-function [xM,zNew,dVT] = LEH04MainProgram_v2(xzGrid,xzFinal,t,WL,Ho,T)
+function [xM,zNew,dVT] = LEH04MainProgram_v2(xzGrid,xzFinal,t,WL,Ho,T,dLslope)
 %% main program for revised LEH04 model with Palmsten and Holman 11
 %% updates.
 %% LEH04 - Larson, Erikson, Hanson (2004). An analyitical model to predict
@@ -37,7 +37,8 @@ clear zxFinal
 xF = xTemp(keep);
 clear zTemp xTemp
 shift = xF(end)-x(end)
-xM = [1262:.1:1350]; %[0:1:max(xF(end)-min(xF), x(end)-min(x))]; %put this on a uniform grid
+xM = [0:1:max(xF(end)-min(xF), x(end)-min(x))]; %put this on a uniform grid % [1262:.1:1350]; JACI
+% xM = [0:1:max(xF(1)-min(xF), x(1)-min(x))];% changed to x(1), because the profiles are backwards before being put into the model
 zTemp = z;
 clear z;
 z = interp1(max(x)-x,(zTemp),xM);
@@ -45,7 +46,7 @@ clear zTemp
 zTemp=zFinal;
 clear zFinal
 zFinal = interp1(max(x)-xF,zTemp,xM);
-xM = xM-1262;
+xM = xM % -1262;JACI
 %waves and water levels
 % WaveData = load('waveConditionsGoldCoast.txt');
 % WLData = load('waterLevelGoldCoast.txt');
@@ -115,12 +116,12 @@ clear keep
 %% constants
 nsigma = 2; %in definition of R2, R16.. For R2 = nsigma=2, R16 = nsigma=1; 
 g = 9.81;
-Bo = .5/30; %3.5./(55);  %initial beach slope, between dune toe and z=0, Dec. 2008 fig.
+Bo = dLslope; %3.5./(55);  %initial beach slope, between dune toe and z=0, Dec. 2008 fig.
 Btfac = -1; %(2.183-.9471)./(112-85)./Bo;  %slope at which beta receeds. LEH04 = 1, PH11 = 0.54.... 
 Bt = Bo*Btfac;
 Bf = 2.183./(112-79);   %final beach slope
 Bf = .5/30
-zb(1) =3.3714;   %based on DEc. 2008 survey, regression fit. See fig.
+zb(1) =3.03681683881661;   %based on DEc. 2008 survey, regression fit. See fig.
 [val st1] = (min((z-zb(1)).^2)); %find grid point where initial dune toe is
 st1=550; 
 Cs = 1.7*10^(-4).*ones(size(Hrmso));  %in LEH04 model, 2.5*10^-4 is Birk data set max, LAB data 1.4 x 10^-3

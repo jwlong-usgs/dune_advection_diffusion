@@ -1,4 +1,4 @@
-function [hh] = dune_diffusion(x,h_to,nu)
+function [hh] = dune_diffusion(x,h_to,nu,vfac)
 % test the adams bashforth model
 % try the case of a bump on flat bed
 % let Q = 1/h
