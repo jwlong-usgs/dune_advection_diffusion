@@ -19,13 +19,13 @@ xzFinal(:,1)=xzGrid(:,1);
 xzFinal(:,2)=xbtest.post.cZi(profile).data;
 xzFinal(:,2)=flipud(xzFinal(:,2));
 
-t=3600:3600:endtime*3600;
+dt=3600;
 WL=xbtest.twl(1:endtime,profile)';
 Ho=xbtest.H(1:endtime,profile)';
 T=xbtest.T(1:endtime,profile)';
-R2=xbtest.R2(:,profile)';
-etabar=xbtest.setup(:,profile)';
-sigma_s=xbtest.S(:,profile)';
+R2=xbtest.R2(1:endtime,profile)';
+etabar=xbtest.setup(1:endtime,profile)';
+sigma_s=xbtest.S(1:endtime,profile)';
 
 dLslope=-xbtest.dlowslope(profile,1); %xbtest.dlowslope(profile,1);
 bslope=xbtest.prebeachslope(profile,1);
@@ -38,4 +38,5 @@ bslope=xbtest.prebeachslope(profile,1);
 Dlowx = xbtest.Dlowfront(1,1);
 Dlow = xbtest.Dlowfront(1,2);
 
-[zNew] = LEH04MainProgram_v2(xzGrid(:,1), xzGrid(:,2), Dlow, Dlowx, t, WL, T, dLslope, R2, etabar, sigma_s);
+[zNew] = LEH04_notime(xzGrid(:,1), xzGrid(:,2), Dlow, Dlowx, dt, WL(80), T(80), dLslope, R2(80), etabar(80), sigma_s(80),0);
+% [zNew] = LEH04MainProgram_v2(x, z, Dlow, Dlowx, dt, surge, T, Bo, R2, setup, S);

@@ -1,4 +1,4 @@
-function [zNew] = LEH04MainProgram_v2(x, z, Dlow, Dlowx, dt, surge, T, Bo, R2, setup, S, Cs)
+function [zNew,dVResidualn] = LEH04_notime(x, z, Dlow, Dlowx, dt, surge, T, Bo, R2, setup, S, dVResidual,Cs)
 % main program for revised LEH04 model with Palmsten and Holman 11
 % updates.
 % LEH04 - Larson, Erikson, Hanson (2004). An analyitical model to predict
@@ -24,7 +24,7 @@ function [zNew] = LEH04MainProgram_v2(x, z, Dlow, Dlowx, dt, surge, T, Bo, R2, s
 %%  Jwlong = revised code from Meg Palmsten and Kristen Splinter
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if nargin < 12
+if nargin < 13
     Cs = 2.5e-4;
 end
 
@@ -41,19 +41,11 @@ Bt = Bo*Btfac;
 zTotal = R2.*Kd + surge;
 
 % allocate variables
-xToe = nan(size(surge));
-V = nan(size(surge));
-dV = nan(size(surge));
-dVT = nan(size(surge));
-dx = nan(size(surge));
-dVResidual = nan(size(surge));
-p = nan(size(surge));
-Nc = nan(size(surge));
-zb = nan(size(surge));
-zNew = nan(length(surge),length(x));
-if length(Cs) == 1
-    Cs = Cs(ones(size(x)));
-end
+
+zNew = nan(length(x));
+% if length(Cs) == 1
+%     Cs = Cs(ones(size(x)));
+% end
 
 
 % %trajectory that dune toe receeds.
@@ -63,40 +55,41 @@ zb(1,1) = Dlow;
 zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + zb(1)];% JACI left in vertical, right in horizontal
 
 %% main program
-for tt=1:length(surge) % JACI just run one time, surge loop on outside
-    if tt==1
-        st = st1;
-    else
-        st = st+ii-1;
-    end
-    xToe(tt) = x(st);
-    V(tt) = sum(abs(diff(x(1:2))).*(z(st:end)));    %measured in ref to z=0
-    clear Vc
-    Vc = cumsum(abs(diff(x(1:2))).*(z(st:end)-zbT(st:end)));  %cumulative volume above the dune trajectory
-    Vc = Vc - Vc(1);
-    
-    p(tt) =1-cdf('norm',zb(tt),setup(tt)+surge(tt),S(tt));
-    Nc(tt) = p(tt).*(dt./T(tt));
-    
-    if tt>1
-        dV(tt) = 4.*Cs(tt).*(max(zTotal(tt)-zb(tt),0)).^2.*Nc(tt);
-        dVT(tt) = dV(tt) - dVResidual(tt-1);
-    else
-        dVT(tt) = 4.*Cs(tt).*(max(zTotal(tt)-zb(tt),0)).^2.*Nc(tt);
-    end
-    
-    if dVT(tt)<0
-        ii=1;
-    else
-        [~, ii] = (min((Vc-dVT(tt)).^2)); %find grid point where dune toe is
-    end
-    
-    dx(tt) = x(st+ii-1)-xToe(tt);
-    dVResidual(tt) = Vc(ii)-dVT(tt);
-    zb(tt+1) = Bt.*dx(tt) + zb(tt);  %trajectory that dune toe receeds.
-    
-    zNew(tt,:) = [z(1:st1); zbT(st1+1:st); z(st+1:end)];
-end
+% for tt=1:length(surge) % JACI just run one time, surge loop on outside
+%     if tt==1
+st = st1;
+%     else
+%
+%     end
+xToe = x(st);
+V = sum(abs(diff(x(1:2))).*(z(st:end)));    %measured in ref to z=0
+clear Vc
+Vc = cumsum(abs(diff(x(1:2))).*(z(st:end)-zbT(st:end)));  %cumulative volume above the dune trajectory
+Vc = Vc - Vc(1);
+
+p =1-cdf('norm',zb,setup+surge,S);
+Nc = p.*(dt./T);
+
+%     if tt>1
+dV = 4.*Cs.*(max(zTotal-zb,0)).^2.*Nc;
+dVT = dV - dVResidual;
+%     else
+%         dVT = 4.*Cs.*(max(zTotal-zb,0)).^2.*Nc;
+%     end
+%
+%     if dVT<0
+%         ii=1;
+%     else
+
+[~, ii] = (min((Vc-dVT).^2)); %find grid point where dune toe is
+%     end
+
+%     dx = x(st+ii-1)-xToe;
+dVResidualn = Vc(ii)-dVT;
+%     zb(tt+1) = Bt.*dx + zb;  %trajectory that dune toe receeds.
+st = st+ii-1;
+zNew = [zbT(st).*ones(st,1); z(st+1:end)];
+
 
 
 
