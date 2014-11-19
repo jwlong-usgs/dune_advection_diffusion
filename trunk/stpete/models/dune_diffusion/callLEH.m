@@ -32,4 +32,10 @@ bslope=xbtest.prebeachslope(profile,1);
 %dLslope = -bslope; 
 %% run model
 
-[xM,zNew,dVT] = LEH04MainProgram_v2(xzGrid,xzFinal,t,WL,Ho,T,dLslope,bslope,R2,etabar,sigma_s);
+%[xM,zNew,dVT] = LEH04MainProgram_v2(xzGrid,xzFinal,t,WL,Ho,T,dLslope,bslope,R2,etabar,sigma_s);
+
+% for the new version
+Dlowx = xbtest.Dlowfront(1,1);
+Dlow = xbtest.Dlowfront(1,2);
+
+[zNew] = LEH04MainProgram_v2(xzGrid(:,1), xzGrid(:,2), Dlow, Dlowx, t, WL, T, dLslope, R2, etabar, sigma_s);
