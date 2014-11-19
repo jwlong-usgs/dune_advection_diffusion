@@ -1,4 +1,4 @@
-function [hh] = dune_diffusion(x,h_to,nu,vfac)
+function [zNew] = dune_diffusion(x,z,nu,vfac)
 % test the adams bashforth model
 % try the case of a bump on flat bed
 % let Q = 1/h
@@ -13,22 +13,22 @@ dx = x(2)-x(1);
 
 % initialize h with bump or hole
 figure;
-plot(x, h_to)
+plot(x, z)
 pause(.5)
 
 % now, setup equations
 % constants
 % stability for advective part
-c_to = vfac*(h_to.^(-2));  
+c_to = vfac*(z.^(-2));  
 cmax = max(c_to);
-dt_c = dx/cmax;
+dt_c = dx/cmax; %cmax is used below for stability, but this is from the advection portion?
 
 % stability for diffusive part
 %nu = 1e-4;
 dt_nu = 0.5*(dx^2)/max(nu);
 
 % strictest stability requirement
-dt = min([dt_c dt_nu]);
+dt = min([dt_c dt_nu]); % should we just use dt_nu
 
 % factor of m for certain stability
 m=5;
@@ -39,18 +39,18 @@ dt = dt/m;
 %Re = A/(2*nu);
 
 % propose to run it for some amount of time
-T = 6*L/(2*cmax);
+T = 6*L/(2*cmax); %!!!!!!
 NT = T/dt;
 
 % initialize calculation arrays (save n_save times)
 n_save = 100;
 nt_save = ceil(NT/n_save);
-hh = zeros(n_save,NX);
+zNew = zeros(n_save,NX);
 F = zeros(1,NX);
 
 % initialize boundary conditions on h
-h_last(1,:) = h_to;
-hh(1,:) = h_last;
+h_last(1,:) = z;
+zNew(1,:) = h_last;
 
 % initialize boundary conditions on F
 % F is dQ/dx
@@ -65,7 +65,7 @@ oodx2 = 1/(dx*dx);  % "one over delta-x^2"
 dQdx = zeros(1,NX);
 nud2hdx2 = zeros(1,NX);
 j_save = 0;
-[~,imax] = max(h_last);
+[~,imax] = max(h_last); % remove? imax not used
 for j = 1:NT
     % find Dhigh?
     
@@ -89,7 +89,7 @@ for j = 1:NT
     % save results
     if ( (j-nt_save) > (j_save*nt_save))
         j_save = j_save + 1;
-        hh(j_save,:) = h_last;
+        zNew(j_save,:) = h_last;
         fprintf('j = %d\r', j); 
     end
 end
