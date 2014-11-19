@@ -1,4 +1,4 @@
-function [xM,zNew,dVT] = LEH04MainProgram_v2(xzGrid,xzFinal,t,WL,Ho,T,dLslope)
+function [xM,zNew,dVT] = LEH04MainProgram_v2(xzGrid,xzFinal,t,WL,Ho,T,dLslope,bslope,R2,etabar,sigma_s)
 %% main program for revised LEH04 model with Palmsten and Holman 11
 %% updates.
 %% LEH04 - Larson, Erikson, Hanson (2004). An analyitical model to predict
@@ -47,9 +47,11 @@ clear zxFinal
 % zFinal = interp1(max(x)-xF,zTemp,xM);
 % xM = xM-1262;.
 
-z = flipud(z(keep));
-zFinal = flipud(zFinal);
+z = z(keep);
 xM = x(keep);
+%z = flipud(z(keep));
+%zFinal = flipud(zFinal);
+%xM = x(keep);
 
 %waves and water levels
 % WaveData = load('waveConditionsGoldCoast.txt');
@@ -161,7 +163,7 @@ for tt=1:length(WL)
     clear Vc
     Vc = cumsum(abs(diff(xM(1:2))).*(z(st:end)-zbT(st:end)));  %cumulative volume above the dune trajectory
     Vc = Vc - Vc(1);
-    Beta(tt) = 0.075; %Bo;   %initial dummy guess.
+    Beta(tt) = bslope; %Bo;   %initial dummy guess.
     etabar(tt) = 0.35.*Beta(tt).*sqrt(Ho(tt).*Lo(tt));
     sigma_s(tt) = sqrt(Ho(tt).*Lo(tt).*(0.563.*(Beta(tt).^2)+0.0004))./2.*nsigma./2;
     zR(tt) = 1.1.*(etabar(tt)+ sigma_s(tt));
@@ -264,7 +266,7 @@ hold on, plot(xM,zNew(end,:),'r')
 hold on, ch=line([0 65],[0 0]);
 set(ch,'linewidth',3)
 legend('Dec 2008 profile', 'June 2009 profile','z(t)','SWL')
-hold on, plot(xM,zNew(1:12:end,:),'r')
+hold on, plot(xM,zNew(1:1:end,:),'r')
 axis tight
 ylim([-2 10])
 xlabel('x (m)')
