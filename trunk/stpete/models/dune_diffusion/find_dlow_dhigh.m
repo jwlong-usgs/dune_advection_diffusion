@@ -18,13 +18,13 @@ if imax == 1
     imax = imax(2:end);
 end
 
-Dhighx = imax(1);
+Dhighx = x(imax(1));
 Dhigh = xmax(1);
 
 %%%%%%%%%%%%% find Dlow %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-xb = x(x<=dhighx);
-zb = z(x<=dhighx); 
+xb = x(x <= Dhighx);
+zb = z(x <= Dhighx); 
 
 % allocate
 dzdx = nan*ones(length(xb),1);
