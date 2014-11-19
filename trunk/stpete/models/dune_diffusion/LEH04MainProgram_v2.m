@@ -33,20 +33,24 @@ xFinal = xTemp(keep);
 clear zxFinal
 
 % interpolate data to a uniform grid and start with origin at the offshore
-% boundary 
-xF = xTemp(keep);
-clear zTemp xTemp
-shift = xF(end)-x(end)
-xM = [0:1:max(xF(end)-min(xF), x(end)-min(x))]; %put this on a uniform grid % [1262:.1:1350]; JACI
-% xM = [0:1:max(xF(1)-min(xF), x(1)-min(x))];% changed to x(1), because the profiles are backwards before being put into the model
-zTemp = z;
-clear z;
-z = interp1(max(x)-x,(zTemp),xM);
-clear zTemp
-zTemp=zFinal;
-clear zFinal
-zFinal = interp1(max(x)-xF,zTemp,xM);
-xM = xM % -1262;JACI
+% boundary
+% xF = xTemp(keep);
+% clear zTemp xTemp
+% shift = xF(end)-x(end)
+% xM = [1262:.1:1350]; %[0:1:max(xF(end)-min(xF), x(end)-min(x))]; %put this on a uniform grid
+% zTemp = z;
+% clear z;
+% z = interp1(max(x)-x,(zTemp),xM);
+% clear zTemp
+% zTemp=zFinal;
+% clear zFinal
+% zFinal = interp1(max(x)-xF,zTemp,xM);
+% xM = xM-1262;.
+
+z = flipud(z(keep));
+zFinal = flipud(zFinal);
+xM = x(keep);
+
 %waves and water levels
 % WaveData = load('waveConditionsGoldCoast.txt');
 % WLData = load('waterLevelGoldCoast.txt');
@@ -114,16 +118,22 @@ clear keep
 %hold on, plot(xF(keep),([ones(size(zFinal(keep))) xF(keep)']*B3),'r')
 
 %% constants
-nsigma = 2; %in definition of R2, R16.. For R2 = nsigma=2, R16 = nsigma=1; 
+nsigma = 2; %in definition of R2, R16.. For R2 = nsigma=2, R16 = nsigma=1;
 g = 9.81;
-Bo = dLslope; %3.5./(55);  %initial beach slope, between dune toe and z=0, Dec. 2008 fig.
-Btfac = -1; %(2.183-.9471)./(112-85)./Bo;  %slope at which beta receeds. LEH04 = 1, PH11 = 0.54.... 
+Bo = dLslope;
+Btfac = 1;
 Bt = Bo*Btfac;
-Bf = 2.183./(112-79);   %final beach slope
-Bf = .5/30
-zb(1) =3.03681683881661;   %based on DEc. 2008 survey, regression fit. See fig.
-[val st1] = (min((z-zb(1)).^2)); %find grid point where initial dune toe is
-st1=550; 
+st1 = 1;
+zb(1) = z(1);
+
+%Bo = .5/30; %3.5./(55);  %initial beach slope, between dune toe and z=0, Dec. 2008 fig.
+%Btfac = -1; %(2.183-.9471)./(112-85)./Bo;  %slope at which beta receeds. LEH04 = 1, PH11 = 0.54....
+%Bt = Bo*Btfac;
+%Bf = 2.183./(112-79);   %final beach slope
+%Bf = .5/30
+%zb(1) =3.3714;   %based on DEc. 2008 survey, regression fit. See fig.
+%[val st1] = (min((z-zb(1)).^2)); %find grid point where initial dune toe is
+%st1=550;
 Cs = 1.7*10^(-4).*ones(size(Hrmso));  %in LEH04 model, 2.5*10^-4 is Birk data set max, LAB data 1.4 x 10^-3
 Cs = 20*10^(-3).*ones(size(Hrmso));
 %Cs = 20*10^(-3);    %best fit for ETA67 using Meg's model, but R2
@@ -139,82 +149,90 @@ hold on, plot(xM,zbT,'k-')
 Lo = g.*T.^2./(2.*pi);
 clear ii tt
 %% main program
- for tt=1:length(WL)
-%[val st] = (min((z-zb(tt)).^2)); %find grid point where dune toe is
-if tt==1
-    st = st1;
-else
-    st = ii;
-end
-xToe(tt) = xM(st);
-V(tt) = sum(abs(diff(xM(1:2))).*(z(st:end)));    %measured in ref to z=0
-clear Vc
- Vc = cumsum(abs(diff(xM(1:2))).*(z(st:end)-zbT(st:end)));  %cumulative volume above the dune trajectory
- Vc = Vc - Vc(1);
- Beta(tt) = Bo;   %initial dummy guess.
- etabar(tt) = 0.35.*Beta(tt).*sqrt(Ho(tt).*Lo(tt));
- sigma_s(tt) = sqrt(Ho(tt).*Lo(tt).*(0.563.*(Beta(tt).^2)+0.0004))./2.*nsigma./2;
- zR(tt) = 1.1.*(etabar(tt)+ sigma_s(tt));
- sigma_s2(tt) = sqrt(Ho(tt).*Lo(tt).*(0.563.*(Beta(tt).^2)+0.0004))./2;
- zR2(tt) = 1.1.*(etabar(tt)+ sigma_s2(tt));
- zRLEH(tt) = 0.158.*sqrt(Ho(tt)./1.416.*Lo(tt)); 
- %zTotal(tt) = zRLEH(tt) + WL(tt);
- zTotal(tt) = zR2(tt).*Kd + WL(tt);
-% 
-%y = pdf('norm',[-2:0.01:2],etabar(tt),sigma_s(tt));
-
-p(tt) =1-cdf('norm',zb(tt),etabar(tt)+WL(tt),sigma_s(tt));
- Nc(tt) = p(tt).*(dt./T(tt));
- if tt>1
+for tt=1:length(WL)
+    %[val st] = (min((z-zb(tt)).^2)); %find grid point where dune toe is
+    if tt==1
+        st = st1;
+    else
+        st = ii;
+    end
+    xToe(tt) = xM(st);
+    V(tt) = sum(abs(diff(xM(1:2))).*(z(st:end)));    %measured in ref to z=0
+    clear Vc
+    Vc = cumsum(abs(diff(xM(1:2))).*(z(st:end)-zbT(st:end)));  %cumulative volume above the dune trajectory
+    Vc = Vc - Vc(1);
+    Beta(tt) = 0.075; %Bo;   %initial dummy guess.
+    etabar(tt) = 0.35.*Beta(tt).*sqrt(Ho(tt).*Lo(tt));
+    sigma_s(tt) = sqrt(Ho(tt).*Lo(tt).*(0.563.*(Beta(tt).^2)+0.0004))./2.*nsigma./2;
+    zR(tt) = 1.1.*(etabar(tt)+ sigma_s(tt));
+    sigma_s2(tt) = sqrt(Ho(tt).*Lo(tt).*(0.563.*(Beta(tt).^2)+0.0004))./2;
+    zR2(tt) = 1.1.*(etabar(tt)+ sigma_s2(tt));
+    zRLEH(tt) = 0.158.*sqrt(Ho(tt)./1.416.*Lo(tt));
+    %zTotal(tt) = zRLEH(tt) + WL(tt);
+    zTotal(tt) = zR2(tt).*Kd + WL(tt);
+    %
+    %y = pdf('norm',[-2:0.01:2],etabar(tt),sigma_s(tt));
+    
+    p(tt) =1-cdf('norm',zb(tt),etabar(tt)+WL(tt),sigma_s(tt));
+    Nc(tt) = p(tt).*(dt./T(tt));
+    if tt>1
         dV(tt) = 4.*Cs(tt).*(max(zTotal(tt)-zb(tt),0)).^2.*Nc(tt);
         dVT(tt) = dV(tt) - dVResidual(tt-1);
- else
-     dVT(tt) = 4.*Cs(tt).*(max(zTotal(tt)-zb(tt),0)).^2.*Nc(tt);
- end
- %these cause a bit of a problem when the dune is quite large compared to
- %the runup... We'd still expect undercutting and failure
-
- %try estimating dx based on eroded volume
-%Vc = cumsum(abs(diff(xM(1:2))).*(max(min(zTotal(tt),z(st:end))-zbT(st:end),0)));  %cumulative volume above the dune trajectory
-%Vc = Vc - Vc(1);
-xstep = 0;  dVtemp = 0; if tt==1; zcheck = z; dV(1) = 0; else zcheck = zNew(tt-1,:); end
-imax = [];
-if dVT(tt)<0
-    ii=1;
-else
-    while dV(tt)>dVtemp
-    zi = interp1(xM+xstep,z,xM);
-    ind = find(zcheck>zb(tt));
-    [dVtemp,imax] = max(cumtrapz(xM(zcheck>zb(tt)),zcheck(zcheck>zb(tt))-zi(zcheck>zb(tt))));
-    imax = imax+ind(1)-2;
-    xstep = xstep+.1; 
+    else
+        dVT(tt) = 4.*Cs(tt).*(max(zTotal(tt)-zb(tt),0)).^2.*Nc(tt);
     end
-[~, ii] = (min((xM-(xToe(tt)+xstep-.1)).^2)); %find grid point where dune toe is
-%ii=ii-st1+1;
+    %these cause a bit of a problem when the dune is quite large compared to
+    %the runup... We'd still expect undercutting and failure
+    
+    %try estimating dx based on eroded volume
+    %Vc = cumsum(abs(diff(xM(1:2))).*(max(min(zTotal(tt),z(st:end))-zbT(st:end),0)));  %cumulative volume above the dune trajectory
+    %Vc = Vc - Vc(1);
+   % xstep = 0;  dVtemp = 0; if tt==1; zcheck = z; dV(1) = 0; else zcheck = zNew(tt-1,:); end
+   % imax = [];
+    if dVT(tt)<0
+        ii=1;
+    else
+%         while dV(tt)>dVtemp
+%             zi = interp1(xM+xstep,z,xM);
+%             ind = find(zcheck>zb(tt));
+%             [dVtemp,imax] = max(cumtrapz(xM(zcheck>zb(tt)),zcheck(zcheck>zb(tt))-zi(zcheck>zb(tt))));
+%             imax = imax+ind(1)-2;
+%             xstep = xstep+.1;
+%         end
+    [val ii] = (min((Vc-dVT(tt)).^2)); %find grid point where dune toe is
+        %[~, ii] = (min((xM-(xToe(tt)+xstep-.1)).^2)); %find grid point where dune toe is
+        %ii=ii-st1+1;
+    end
+    dx(tt) = xM(st+ii-1)-xToe(tt);
+    dVResidual(tt) = Vc(ii)-dVT(tt);
+    zb(tt+1) = Bt.*dx(tt) + zb(tt);  %trajectory that dune toe receeds.
+    if st==1
+    zNew(tt,:) = [z(st1:end)];
+    else
+    zNew(tt,:) = [z(1:st1) zbT(st1+1:st)' z(st+1:end)'];
+    end
+%     %if isempty(imax); imax=st; zi = z; end
+%     dx(tt) = xM(st+ii-1)-xToe(tt); %xstep-.1; %
+%     xToe(tt+1) = xToe(tt)+dx(tt);
+%     dVResidual(tt) = 0; %Vc(ii)-dVT(tt);
+%     zb(tt+1) = Bt.*dx(tt) + zb(tt);  %trajectory that dune toe receeds.
+%     zforeslope = zb(tt+1)/(ii/10);
+%     zfore = xM(1:ii)*zforeslope; 
+%     zNew(tt,:) = [zfore zi(ii+1:imax+1) z(imax+2:end)'];
+%     figure(111)
+%     plot(xM,z,'-b')
+%     hold on; pause(.2)
+%     plot(xM,zNew(tt,:),'--r')
 end
 
-if isempty(imax); imax=st; zi = z; end
-dx(tt) = xstep-.1; %xM(st+ii-1)-xToe(tt);
-xToe(tt+1) = xToe(tt)+dx(tt);
-dVResidual(tt) = 0; %Vc(ii)-dVT(tt);
-zb(tt+1) = Bt.*dx(tt) + zb(tt);  %trajectory that dune toe receeds.
-zforeslope = zb(tt+1)/(ii/10);
-zfore = xM(1:ii)*zforeslope;
-zNew(tt,:) = [zfore zi(ii+1:imax+1) z(imax+2:end)];
-figure(111)
-plot(xM,z,'-b')
-hold on; pause
-plot(xM,zNew(tt,:),'--r')
-end
- 
- figure(111); plot(xM,zFinal,'--k','linewidth',2)
+%figure(111); plot(xM,zFinal,'--k','linewidth',2)
 %keyboard
 xToe(tt+1) = xToe(tt)+dx(tt);
 
- st = st+ii-1;
- %zNew(tt+1,:) = [z(1:st1) zbT(st1+1:st) z(st+1:end)];
- t = [t t(end)+dt];
- figure
+st = st+ii-1;
+%zNew(tt+1,:) = [z(1:st1) zbT(st1+1:st) z(st+1:end)];
+t = [t t(end)+dt];
+figure
 subplot(211),plot(t./60./60,zb,'k','linewidth',3)
 hold on, ch=line([t(1) t(end)]./3600, [zb(1) zb(1)]);
 set(ch,'linewidth',3)
