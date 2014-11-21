@@ -1,4 +1,4 @@
-function [zNew,dVResidualn] = LEH04_notime(x, z, Dlow, Dlowx, dt, surge, T, Bo, R2, setup, S, dVResidual,Cs)
+function [zNew,dVResidualn,Dlows] = LEH04_notime(x, z, Dlow, Dlowx, dt, surge, T, Bo, R2, setup, S, dVResidual,Cs)
 % main program for revised LEH04 model with Palmsten and Holman 11
 % updates.
 % LEH04 - Larson, Erikson, Hanson (2004). An analyitical model to predict
@@ -52,7 +52,7 @@ zNew = nan(length(x));
 zb(1,1) = Dlow;
 [~, st1] = min(((x)-Dlowx).^2);  %find grid point where initial dune toe is
 % keyboard
-zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + zb(1)];% JACI left in vertical, right in horizontal
+zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + zb(1)];
 
 %% main program
 % for tt=1:length(surge) % JACI just run one time, surge loop on outside
@@ -89,8 +89,8 @@ dVResidualn = Vc(ii)-dVT;
 %     zb(tt+1) = Bt.*dx + zb;  %trajectory that dune toe receeds.
 st = st+ii-1;
 zNew = [zbT(st).*ones(st,1); z(st+1:end)];
-
-
+Dlows = Bt.*(x-x(st1)) + zb(1);
+% Dlowxs = x(ii);
 
 
 
