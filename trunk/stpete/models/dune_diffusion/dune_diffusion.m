@@ -1,4 +1,4 @@
-function [zNew] = dune_diffusion(x,z,nu,vfac)
+function [zNew] = dune_diffusion(x,z,nu,vfac,gridrx) %slopec,
 % test the adams bashforth model
 % try the case of a bump on flat bed
 % let Q = 1/h
@@ -6,20 +6,25 @@ function [zNew] = dune_diffusion(x,z,nu,vfac)
 % dh/dt = h^(-2)dh/dx + nu d2h/dx2
 % nu is a diffusion coef.
 
+
+% trim grid to second trough, as not to diffuse sediment beyond first dune
+xb = x(1:gridrx,1);
+zb = z(1,1:gridrx);
 % initialize flat bottom
-NX = length(x);
-L = max(x)-min(x);
-dx = x(2)-x(1);
+NX = length(xb);
+L = max(xb)-min(xb);
+dx = xb(2)-xb(1);
 
 % initialize h with bump or hole
-figure;
-plot(x, z)
-pause(.5)
+
+% figure;
+% plot(x, z)
+% pause(.5)
 
 % now, setup equations
 % constants
 % stability for advective part
-c_to = vfac*(z.^(-2));  
+c_to = vfac*(zb.^(-2));
 cmax = max(c_to);
 dt_c = dx/cmax; %cmax is used below for stability, but this is from the advection portion?
 
@@ -45,12 +50,12 @@ NT = T/dt;
 % initialize calculation arrays (save n_save times)
 n_save = 100;
 nt_save = ceil(NT/n_save);
-zNew = zeros(n_save,NX);
+zNewd = zeros(n_save,NX);
 F = zeros(1,NX);
 
 % initialize boundary conditions on h
-h_last(1,:) = z;
-zNew(1,:) = h_last;
+h_last(1,:) = zb;
+zNewd(1,:) = h_last;
 
 % initialize boundary conditions on F
 % F is dQ/dx
@@ -66,9 +71,10 @@ dQdx = zeros(1,NX);
 nud2hdx2 = zeros(1,NX);
 j_save = 0;
 [~,imax] = max(h_last); % remove? imax not used
+
 for j = 1:NT
     % find Dhigh?
-    
+
     % spatial derivatives:
     for i= 2:(NX-1)
         h = h_last;
@@ -85,12 +91,20 @@ for j = 1:NT
     % do the time step
     h_last = dt * (1.5*F - 0.5*F_last) + h;
     F_last = F;
-    
     % save results
     if ( (j-nt_save) > (j_save*nt_save))
         j_save = j_save + 1;
-        zNew(j_save,:) = h_last;
-        fprintf('j = %d\r', j); 
+        zNewd(j_save,:) = h_last;
+%         g(j_save,1) = max(gradient(xb,zNewd(j_save,:)));
+        
+        %         fprintf('j = %d\r', j);
     end
+    
+    
 end
+% keyboard
 
+% endvalm=max(endval);
+% add original profile back in to end of grid
+zNew(1:gridrx,1)=zNewd(99,:)'; %(endvalm(end),:)'; ENDVAL not working, slope decreases from the max with diffusion of small changes in volume
+zNew(gridrx+1:length(z),1)=z(1,gridrx+1:length(z))';
