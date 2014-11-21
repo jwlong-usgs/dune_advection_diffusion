@@ -95,6 +95,7 @@ for j = 1:NT
     if ( (j-nt_save) > (j_save*nt_save))
         j_save = j_save + 1;
         zNewd(j_save,:) = h_last;
+% SLOPE CONDITIONS: CALCULATE Maximum gradient at saved outputs
 %         g(j_save,1) = max(gradient(xb,zNewd(j_save,:)));
         
         %         fprintf('j = %d\r', j);
@@ -102,8 +103,6 @@ for j = 1:NT
     
     
 end
-% keyboard
-
 % endvalm=max(endval);
 % add original profile back in to end of grid
 zNew(1:gridrx,1)=zNewd(99,:)'; %(endvalm(end),:)'; ENDVAL not working, slope decreases from the max with diffusion of small changes in volume

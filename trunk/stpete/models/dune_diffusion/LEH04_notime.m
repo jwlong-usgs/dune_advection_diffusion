@@ -90,7 +90,6 @@ dVResidualn = Vc(ii)-dVT;
 st = st+ii-1;
 zNew = [zbT(st).*ones(st,1); z(st+1:end)];
 Dlows = Bt.*(x-x(st1)) + zb(1);
-% Dlowxs = x(ii);
 
 
 
