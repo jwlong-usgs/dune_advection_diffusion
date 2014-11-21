@@ -1,4 +1,4 @@
-% function [x, z, Dhigh, Dhighx, Dlow, Dlowx, counto, countc]=wrapper(xbliteGRIDS100,xb,profiles,nu)
+% function [x, z, Dhigh, Dhighx, Dlow, Dlowx, counto, countc]=wrapper(xbliteGRIDS100,xb,xbliteHydro,xbliteD_all,profiles,nu)
 %% WRAPPER
 %
 %
@@ -8,20 +8,22 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Load Variables
+% these variables only need to be loaded once. if you want to run different
+% profiles, I would suggest evaluating the code in sections.
 load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_HYDRO.mat'
 load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_GRIDS100.mat'
 load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\xblite_parameters\xb_parameters.mat'
-
+load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_D_all.mat'
 %% Convert Variables
 % convert to model format
-clearvars -except xbliteGRIDS100 xb profiles nu xbliteHydro
+clearvars -except xbliteGRIDS100 xb profiles nu xbliteHydro xbliteD_all
 
 profiles=2884;
 % model coefficients
-nuval=0.05;
+nuval=0.005;
 vfac=10; % single value, may want to change
 
-slope=0.52;
+slope=0.52; % critical slope before avalanching
 % hydro and features
 
 t=3600:3600:180*3600;
@@ -32,7 +34,7 @@ S=xbliteHydro.Sts(:,profiles)';
 surge=xbliteHydro.wlts(:,profiles)';
 T=xbliteHydro.Tts(:,profiles)';
 Ho=xbliteHydro.Hts(:,profiles)';
-Bo=-xb.all(profiles,14);
+Bo=-xb.dlowslope(profiles,1); % foreshore slope: -xbliteD_all(profiles,13);
 
 %% Models
 
@@ -51,7 +53,7 @@ for i=1:length(profiles)
     counto(i)=0;
     countc(i)=0;
     zNewl=nan(length(t),length(z(1).data(:,1))); % test difference between coll/diff coll
-    
+%     Dlows=nan(length(t),length(z(1).data(:,1))); % change to structure if run on multiple profiles
     for j=1:length(t)
             % INUNDATION
         if surge(i,j)+setup(i,j)>=Dhigh(i,j) || isnan(Dhigh(i,j))
@@ -73,8 +75,11 @@ for i=1:length(profiles)
             
             % COLLISION
         elseif twl(i,j)>Dlow(i,j) && twl(i,j)<Dhigh(i,j)
-            [zNewl(j,:),dVResidual(i,j+1),Dlows] = LEH04_notime(x(i).data(:,1),z(i).data(:,j),...
+            % if we want to run multiple profiles, will have to change
+            % Dlows to a structure.
+            [zNewl(j,:),dVResidual(i,j+1),Dlows(countc+1,:)] = LEH04_notime(x(i).data(:,1),z(i).data(:,j),...
                 Dlow(i,j),Dlowx(i,j),3600,surge(i,j),T(i,j),Bo(i,1),R2(i,j),setup(i,j),S(i,j),dVResidual(i,j)); %add back Cs later
+            
             [~,~,~,imin]=extreme(zNewl(j,:));
             % if imin is only one value, just run the entire profile
             if length(imin)<2
@@ -83,7 +88,7 @@ for i=1:length(profiles)
             gridx=sort(imin);
             gridrx=gridx(2); % make sure this is pulling the second low
             [zNew] = dune_diffusion(x(i).data(:,1),zNewl(j,:),nu,vfac,gridrx); % slopec,
-            [Dlowx(i,j+1), Dlow(i,j+1), Dhighx(i,j+1), Dhigh(i,j+1)]=find_dlow_dhigh(x(i).data(:,1),zNew,Dlows);
+            [Dlowx(i,j+1), Dlow(i,j+1), Dhighx(i,j+1), Dhigh(i,j+1)]=find_dlow_dhigh(x(i).data(:,1),zNew,Dlows(1,:)');
             z(i).data(:,j+1)=zNew(:,1);
             countc(i)=countc(i)+1
             
@@ -104,17 +109,17 @@ end
 
 figure;
 subplot(2,1,1)
-plot(Dlows)
+plot(Dlows(1,:))
 hold on
 plot(zNewl')
 title(['nu = ' num2str(nuval)])
 
 subplot(2,1,2)
 plot(z(1).data)
-hold on; 
+hold on;
 plot(fliplr(xbliteGRIDS100.pre.cZi(profiles).data),'--','LineWidth',2)
 plot(fliplr(xbliteGRIDS100.post.cZi(profiles).data),'--','LineWidth',2)
-plot(Dlows)
+plot(Dlows(1,:))
 
 %% plot hydro
 profile=1;
