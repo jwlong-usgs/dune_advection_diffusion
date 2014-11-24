@@ -51,7 +51,7 @@ zNew = nan(length(x));
 % %trajectory that dune toe receeds.
 zb(1,1) = Dlow;
 [~, st1] = min(((x)-Dlowx).^2);  %find grid point where initial dune toe is
-% keyboard
+ keyboard
 % zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + zb(1)];
 zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + Dlowi];
 
@@ -89,7 +89,7 @@ dVT = dV - dVResidual;
 dVResidualn = Vc(ii)-dVT;
 %     zb(tt+1) = Bt.*dx + zb;  %trajectory that dune toe receeds.
 st = st+ii-1;
-zNew = [zbT(st).*ones(st,1); z(st+1:end)];
+zNew = [zbT(1:st); z(st+1:end)];
 Dlows = Bt.*(x-x(st1)) + zb(1);
 
 
