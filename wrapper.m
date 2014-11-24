@@ -20,7 +20,7 @@ clearvars -except xbliteGRIDS100 xb profiles nu xbliteHydro xbliteD_all
 
 profiles=2884;
 % model coefficients
-nuval=0.0005;
+nuval=0.005;
 vfac=10; % single value, may want to change
 
 slope=0.52; % critical slope before avalanching
@@ -34,14 +34,14 @@ S=xbliteHydro.Sts(:,profiles)';
 surge=xbliteHydro.wlts(:,profiles)';
 T=xbliteHydro.Tts(:,profiles)';
 Ho=xbliteHydro.Hts(:,profiles)';
-Bo= -xbliteD_all(profiles,13); % -xb.dlowslope(profiles,1); % foreshore slope: 
+Bo= -xbliteD_all(profiles,14); % -xb.dlowslope(profiles,1); % foreshore slope: 
 
 %% Models
 
 
 Dhigh(:,1)=xb.preDhigh(profiles,1);
 Dhighx(:,1)=xb.xpreDhigh(profiles,1);
-Dlow(:,1)=xb.predlowf(profiles,1);
+Dlow(:,1)=xbliteGRIDS100.pre.cZi(profiles).data(end);
 Dlowx(:,1)=xb.xpredlowf(profiles,1);
 dVResidual=zeros(length(profiles),length(t));
 
@@ -78,10 +78,11 @@ for i=1:length(profiles)
         elseif twl(i,j)>Dlow(i,j) && twl(i,j)<Dhigh(i,j)
             % if we want to run multiple profiles, will have to change
             % Dlows to a structure.
-            [zNewl(j,:),dVResidual(i,j+1),Dlows(countc+1,:)] = LEH04_notime(x(i).data(:,1),z(i).data(:,j),...
+            [zNewl(j,:),dVResidual(i,j+1),Dlows(countc+1,:),dV(j,1)] = LEH04_notime(x(i).data(:,1),z(i).data(:,j),...
                 Dlow(i,j),Dlowi,Dlowx(i,j),3600,surge(i,j),T(i,j),Bo(i,1),R2(i,j),setup(i,j),S(i,j),dVResidual(i,j)); %add back Cs later
             
             [~,~,~,imin]=extreme(zNewl(j,:));
+%             keyboard
             % if imin is only one value, just run the entire profile
             if length(imin)<2
                 imin(2)=length(x(i).data(:,1));
@@ -111,17 +112,17 @@ end
 
 figure;
 subplot(2,1,1)
-plot(Dlows(1,:))
+plot(x(1).data,Dlows(1,:))
 hold on
-plot(zNewl')
+plot(x(1).data,zNewl')
 title(['nu = ' num2str(nuval)])
 
 subplot(2,1,2)
-plot(z(1).data)
+plot(x(1).data,z(1).data)
 hold on;
-plot(fliplr(xbliteGRIDS100.pre.cZi(profiles).data),'--','LineWidth',2)
-plot(fliplr(xbliteGRIDS100.post.cZi(profiles).data),'--','LineWidth',2)
-plot(Dlows(1,:))
+plot(x(1).data,fliplr(xbliteGRIDS100.pre.cZi(profiles).data),'--','LineWidth',2)
+plot(x(1).data,fliplr(xbliteGRIDS100.post.cZi(profiles).data),'--','LineWidth',2)
+plot(x(1).data,Dlows(1,:))
 
 %% plot hydro
 profile=1;

@@ -8,6 +8,7 @@ function [zNew] = dune_diffusion(x,z,nu,vfac,gridrx) %slopec,
 
 
 % trim grid to second trough, as not to diffuse sediment beyond first dune
+% keyboard
 xb = x(1:gridrx,1);
 zb = z(1,1:gridrx);
 % initialize flat bottom
