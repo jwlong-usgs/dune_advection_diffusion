@@ -20,7 +20,7 @@ clearvars -except xbliteGRIDS100 xb profiles nu xbliteHydro xbliteD_all
 
 profiles=2884;
 % model coefficients
-nuval=0.005;
+nuval=0.0005;
 vfac=10; % single value, may want to change
 
 slope=0.52; % critical slope before avalanching
@@ -34,7 +34,7 @@ S=xbliteHydro.Sts(:,profiles)';
 surge=xbliteHydro.wlts(:,profiles)';
 T=xbliteHydro.Tts(:,profiles)';
 Ho=xbliteHydro.Hts(:,profiles)';
-Bo=-xb.dlowslope(profiles,1); % foreshore slope: -xbliteD_all(profiles,13);
+Bo= -xbliteD_all(profiles,13); % -xb.dlowslope(profiles,1); % foreshore slope: 
 
 %% Models
 
@@ -53,6 +53,7 @@ for i=1:length(profiles)
     counto(i)=0;
     countc(i)=0;
     zNewl=nan(length(t),length(z(1).data(:,1))); % test difference between coll/diff coll
+    Dlowi=Dlow(1);
 %     Dlows=nan(length(t),length(z(1).data(:,1))); % change to structure if run on multiple profiles
     for j=1:length(t)
             % INUNDATION
@@ -78,7 +79,7 @@ for i=1:length(profiles)
             % if we want to run multiple profiles, will have to change
             % Dlows to a structure.
             [zNewl(j,:),dVResidual(i,j+1),Dlows(countc+1,:)] = LEH04_notime(x(i).data(:,1),z(i).data(:,j),...
-                Dlow(i,j),Dlowx(i,j),3600,surge(i,j),T(i,j),Bo(i,1),R2(i,j),setup(i,j),S(i,j),dVResidual(i,j)); %add back Cs later
+                Dlow(i,j),Dlowi,Dlowx(i,j),3600,surge(i,j),T(i,j),Bo(i,1),R2(i,j),setup(i,j),S(i,j),dVResidual(i,j)); %add back Cs later
             
             [~,~,~,imin]=extreme(zNewl(j,:));
             % if imin is only one value, just run the entire profile
@@ -87,6 +88,7 @@ for i=1:length(profiles)
             end
             gridx=sort(imin);
             gridrx=gridx(2); % make sure this is pulling the second low
+% keyboard
             [zNew] = dune_diffusion(x(i).data(:,1),zNewl(j,:),nu,vfac,gridrx); % slopec,
             [Dlowx(i,j+1), Dlow(i,j+1), Dhighx(i,j+1), Dhigh(i,j+1)]=find_dlow_dhigh(x(i).data(:,1),zNew,Dlows(1,:)');
             z(i).data(:,j+1)=zNew(:,1);

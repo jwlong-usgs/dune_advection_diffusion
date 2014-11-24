@@ -1,4 +1,4 @@
-function [zNew,dVResidualn,Dlows] = LEH04_notime(x, z, Dlow, Dlowx, dt, surge, T, Bo, R2, setup, S, dVResidual,Cs)
+function [zNew,dVResidualn,Dlows] = LEH04_notime(x, z, Dlow, Dlowi, Dlowx, dt, surge, T, Bo, R2, setup, S, dVResidual,Cs)
 % main program for revised LEH04 model with Palmsten and Holman 11
 % updates.
 % LEH04 - Larson, Erikson, Hanson (2004). An analyitical model to predict
@@ -24,7 +24,7 @@ function [zNew,dVResidualn,Dlows] = LEH04_notime(x, z, Dlow, Dlowx, dt, surge, T
 %%  Jwlong = revised code from Meg Palmsten and Kristen Splinter
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if nargin < 13
+if nargin < 14
     Cs = 2.5e-4;
 end
 
@@ -52,7 +52,8 @@ zNew = nan(length(x));
 zb(1,1) = Dlow;
 [~, st1] = min(((x)-Dlowx).^2);  %find grid point where initial dune toe is
 % keyboard
-zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + zb(1)];
+% zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + zb(1)];
+zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + Dlowi];
 
 %% main program
 % for tt=1:length(surge) % JACI just run one time, surge loop on outside
