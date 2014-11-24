@@ -1,4 +1,4 @@
-function [zNew,dVResidualn,Dlows] = LEH04_notime(x, z, Dlow, Dlowi, Dlowx, dt, surge, T, Bo, R2, setup, S, dVResidual,Cs)
+function [zNew,dVResidualn,Dlows,dV] = LEH04_notime(x, z, Dlow, Dlowi, Dlowx, dt, surge, T, Bo, R2, setup, S, dVResidual,Cs)
 % main program for revised LEH04 model with Palmsten and Holman 11
 % updates.
 % LEH04 - Larson, Erikson, Hanson (2004). An analyitical model to predict
@@ -49,11 +49,19 @@ zNew = nan(length(x));
 
 
 % %trajectory that dune toe receeds.
+
 zb(1,1) = Dlow;
+Dlows = Bt.*(x) + zb(1);
 [~, st1] = min(((x)-Dlowx).^2);  %find grid point where initial dune toe is
- keyboard
-% zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + zb(1)];
-zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + Dlowi];
+% keyboard
+if Dlow<(Bt*(Dlowx) + zb(1));
+    [r,~] = find(Dlows<z);
+    st1=r(1);
+end
+
+%  keyboard
+zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + zb(1)];
+% zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + Dlowi];
 
 %% main program
 % for tt=1:length(surge) % JACI just run one time, surge loop on outside
@@ -89,8 +97,8 @@ dVT = dV - dVResidual;
 dVResidualn = Vc(ii)-dVT;
 %     zb(tt+1) = Bt.*dx + zb;  %trajectory that dune toe receeds.
 st = st+ii-1;
-zNew = [zbT(1:st); z(st+1:end)];
-Dlows = Bt.*(x-x(st1)) + zb(1);
 
+
+zNew = [Dlows(1:st); z(st+1:end)];
 
 
