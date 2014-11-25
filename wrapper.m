@@ -18,7 +18,7 @@ load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_D_all
 % convert to model format
 clearvars -except xbliteGRIDS100 xb profiles nu xbliteHydro xbliteD_all
 
-profiles=2884;
+profiles=4500; %2884;
 % model coefficients
 nuval=0.005;
 vfac=10; % single value, may want to change
@@ -34,7 +34,7 @@ S=xbliteHydro.Sts(:,profiles)';
 surge=xbliteHydro.wlts(:,profiles)';
 T=xbliteHydro.Tts(:,profiles)';
 Ho=xbliteHydro.Hts(:,profiles)';
-Bo= -xbliteD_all(profiles,14); % -xb.dlowslope(profiles,1); % foreshore slope: 
+Bo= -xbliteD_all(profiles,14); %-xb.dlowslope(profiles,1);   % foreshore slope: 
 
 %% Models
 
@@ -82,14 +82,14 @@ for i=1:length(profiles)
                 Dlow(i,j),Dlowi,Dlowx(i,j),3600,surge(i,j),T(i,j),Bo(i,1),R2(i,j),setup(i,j),S(i,j),dVResidual(i,j)); %add back Cs later
             
             [~,~,~,imin]=extreme(zNewl(j,:));
-%             keyboard
+           %keyboard
             % if imin is only one value, just run the entire profile
             if length(imin)<2
                 imin(2)=length(x(i).data(:,1));
             end
             gridx=sort(imin);
             gridrx=gridx(2); % make sure this is pulling the second low
-% keyboard
+   
             [zNew] = dune_diffusion(x(i).data(:,1),zNewl(j,:),nu,vfac,gridrx); % slopec,
             [Dlowx(i,j+1), Dlow(i,j+1), Dhighx(i,j+1), Dhigh(i,j+1)]=find_dlow_dhigh(x(i).data(:,1),zNew,Dlows(1,:)');
             z(i).data(:,j+1)=zNew(:,1);
@@ -130,7 +130,6 @@ figure;
 hold on; plot(surge(profile,:)+R2(profile,:))
 plot(Dlow(profile,:))
 plot(Dhigh(profile,:))
-box on
-grid on
+box ongrid on
 title 'hydro vs time dependent dune'
 legend('TWL','D_l_o_w','D_h_i_g_h')
