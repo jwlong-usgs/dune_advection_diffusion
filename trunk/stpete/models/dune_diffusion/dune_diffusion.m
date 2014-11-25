@@ -8,7 +8,7 @@ function [zNew] = dune_diffusion(x,z,nu,vfac,gridrx) %slopec,
 
 
 % trim grid to second trough, as not to diffuse sediment beyond first dune
-% keyboard
+
 xb = x(1:gridrx,1);
 zb = z(1,1:gridrx);
 % initialize flat bottom
@@ -51,7 +51,7 @@ NT = T/dt;
 % initialize calculation arrays (save n_save times)
 n_save = 100;
 nt_save = ceil(NT/n_save);
-zNewd = zeros(n_save,NX);
+zNewd = nan(n_save,NX);
 F = zeros(1,NX);
 
 % initialize boundary conditions on h
@@ -104,7 +104,8 @@ for j = 1:NT
     
     
 end
+inan = find(sum(isnan(zNewd),2)==0);
 % endvalm=max(endval);
 % add original profile back in to end of grid
-zNew(1:gridrx,1)=zNewd(99,:)'; %(endvalm(end),:)'; ENDVAL not working, slope decreases from the max with diffusion of small changes in volume
+zNew(1:gridrx,1)=zNewd(inan(end),:)'; %(endvalm(end),:)'; ENDVAL not working, slope decreases from the max with diffusion of small changes in volume
 zNew(gridrx+1:length(z),1)=z(1,gridrx+1:length(z))';

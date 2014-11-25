@@ -25,7 +25,7 @@ function [zNew,dVResidualn,Dlows,dV] = LEH04_notime(x, z, Dlow, Dlowi, Dlowx, dt
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if nargin < 14
-    Cs = 2.5e-4;
+    Cs = 2.5e-3;
 end
 
 %% define constants
@@ -50,18 +50,20 @@ zNew = nan(length(x));
 
 % %trajectory that dune toe receeds.
 
-zb(1,1) = Dlow;
-Dlows = Bt.*(x) + zb(1);
+zb(1,1) = Dlowi;
+Dlows = Bt.*(x) + Dlowi;
 [~, st1] = min(((x)-Dlowx).^2);  %find grid point where initial dune toe is
-% keyboard
 if Dlow<(Bt*(Dlowx) + zb(1));
+    try
     [r,~] = find(Dlows<z);
     st1=r(1);
+    catch
+        st1 = 1
+    end
 end
 
-%  keyboard
-zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + zb(1)];
-% zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + Dlowi];
+%zbT = [nan(st1-1,1); Bt.*(x(st1:end)-x(st1)) + zb(1)];
+zbT = [Bt.*(x(1:end)) + Dlowi];
 
 %% main program
 % for tt=1:length(surge) % JACI just run one time, surge loop on outside
@@ -89,8 +91,12 @@ dVT = dV - dVResidual;
 %     if dVT<0
 %         ii=1;
 %     else
+%
+% this doesnt work when the cuumulative sum becomes < 0
+[~, im] = max(diff(Vc));  Vc(im:end) = NaN;
+[~, ii] = (nanmin((Vc-dVT).^2)); %find grid point where dune toe is
 
-[~, ii] = (min((Vc-dVT).^2)); %find grid point where dune toe is
+% use a zero upcrossing method instead
 %     end
 
 %     dx = x(st+ii-1)-xToe;
@@ -100,5 +106,10 @@ st = st+ii-1;
 
 
 zNew = [Dlows(1:st); z(st+1:end)];
+
+figure; plot(x,z); hold on
+plot(x,zNew,'--r')
+plot(x,zbT)
+
 
 
