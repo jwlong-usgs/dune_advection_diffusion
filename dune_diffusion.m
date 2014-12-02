@@ -8,19 +8,24 @@ function [zNew] = dune_diffusion(x,z,nu,vfac,gridrx) %slopec,
 
 
 % trim grid to second trough, as not to diffuse sediment beyond first dune
+% keyboard
 
 xb = x(1:gridrx,1);
 zb = z(1,1:gridrx);
+nu = nu(1:gridrx,1);
+% find max slope of front of dune to make slope dependent nu
+% this is the location of the dune toe
+[~,mm] = find(gradient(zb,xb)==max(gradient(zb,xb)));
+% add 3 meters to zone of influence of new diffusion coefficient
+nu(1:mm+1,1)=2;
+
+
+
 % initialize flat bottom
 NX = length(xb);
 L = max(xb)-min(xb);
 dx = xb(2)-xb(1);
 
-% initialize h with bump or hole
-
-% figure;
-% plot(x, z)
-% pause(.5)
 
 % now, setup equations
 % constants
@@ -45,7 +50,7 @@ dt = dt/m;
 %Re = A/(2*nu);
 
 % propose to run it for some amount of time
-T = 6*L/(2*cmax); %!!!!!!
+T = 6*L/(2*cmax); 
 NT = T/dt;
 
 % initialize calculation arrays (save n_save times)
@@ -74,8 +79,7 @@ j_save = 0;
 [~,imax] = max(h_last); % remove? imax not used
 
 for j = 1:NT
-    % find Dhigh?
-
+ 
     % spatial derivatives:
     for i= 2:(NX-1)
         h = h_last;
@@ -96,16 +100,15 @@ for j = 1:NT
     if ( (j-nt_save) > (j_save*nt_save))
         j_save = j_save + 1;
         zNewd(j_save,:) = h_last;
-% SLOPE CONDITIONS: CALCULATE Maximum gradient at saved outputs
-%         g(j_save,1) = max(gradient(xb,zNewd(j_save,:)));
         
         %         fprintf('j = %d\r', j);
     end
     
     
 end
+
 inan = find(sum(isnan(zNewd),2)==0);
-% endvalm=max(endval);
-% add original profile back in to end of grid
-zNew(1:gridrx,1)=zNewd(inan(end),:)'; %(endvalm(end),:)'; ENDVAL not working, slope decreases from the max with diffusion of small changes in volume
+zNew(1:gridrx,1)=zNewd(inan(end),:)'; 
+% add original profile back in
 zNew(gridrx+1:length(z),1)=z(1,gridrx+1:length(z))';
+
