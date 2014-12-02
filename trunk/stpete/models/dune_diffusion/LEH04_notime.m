@@ -1,4 +1,4 @@
-function [zNew,dVResidualn,Dlows,dV] = LEH04_notime(x, z, Dlow, Dlowi, Dlowx, dt, surge, T, Bo, R2, setup, S, dVResidual,Cs)
+function [zNew,dVResidualn,Dlows,dV] = LEH04_notime(x, z, Dlow, Dlowi, Dlowx, dt, surge, T, Bo, R2, setup, S, dVResidual,Bf, Cs)
 % main program for revised LEH04 model with Palmsten and Holman 11
 % updates.
 % LEH04 - Larson, Erikson, Hanson (2004). An analyitical model to predict
@@ -16,6 +16,9 @@ function [zNew,dVResidualn,Dlows,dV] = LEH04_notime(x, z, Dlow, Dlowi, Dlowx, dt
 %      R2 = 2% exceedence of wave runup
 %      etabar = wave setup
 %      sigma_s = swash (incident and infragravity combined)
+%      dVResidual = residual of volume not taken out by the previous time
+%      step
+%      Bf = foreshore slope, set all values below dlow to this slope.
 %      Cs = sediment transport coefficient in LEH and Palmsten and Holman
 %
 %  OUTPUTS:
@@ -24,8 +27,8 @@ function [zNew,dVResidualn,Dlows,dV] = LEH04_notime(x, z, Dlow, Dlowi, Dlowx, dt
 %%  Jwlong = revised code from Meg Palmsten and Kristen Splinter
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if nargin < 14
-    Cs = 2.5e-3;
+if nargin < 15
+    Cs = 4.5e-3;
 end
 
 %% define constants
@@ -52,6 +55,7 @@ zNew = nan(length(x));
 
 zb(1,1) = Dlowi;
 Dlows = Bt.*(x) + Dlowi;
+
 [~, st1] = min(((x)-Dlowx).^2);  %find grid point where initial dune toe is
 if Dlow<(Bt*(Dlowx) + zb(1));
     try
@@ -104,12 +108,12 @@ dVResidualn = Vc(ii)-dVT;
 %     zb(tt+1) = Bt.*dx + zb;  %trajectory that dune toe receeds.
 st = st+ii-1;
 
-
-zNew = [Dlows(1:st); z(st+1:end)];
-
-figure; plot(x,z); hold on
-plot(x,zNew,'--r')
-plot(x,zbT)
+FS=Bf.*(x-x(st)) + zbT(st);
+zNew = [FS(1:st); z(st+1:end)];
+% 
+% figure; plot(x,z); hold on
+% plot(x,zNew,'--r')
+% plot(x,zbT)
 
 
 

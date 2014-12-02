@@ -42,6 +42,6 @@ Dlowsb = Dlows(x <= Dhighx);
 % Dlow = mean(zb(ind:ind+1));
 % Dlowx = mean(xb(ind:ind+1));
 % keyboard
-[r,~] = find(zb>=Dlowsb);
+[r,~] = find(zb>Dlowsb);
 Dlowx = xb(r(1),1);
 Dlow = zb(r(1),1);

@@ -7,14 +7,11 @@ function [zNew] = dune_advection_diffusion(x,z,vfac,nu)
 % nu is a diffusion coef.
 
 % initialize flat bottom
-NX = length(x);
+NX = length(x); % not using xb here, because we want to run the whole profile
 L = max(x)-min(x);
 dx = x(2)-x(1);
 
-% initialize h with bump or hole
-figure;
-plot(x, z)
-pause(.5)
+
 
 % now, setup equations
 % constants
@@ -45,12 +42,12 @@ NT = T/dt;
 % initialize calculation arrays (save n_save times)
 n_save = 100;
 nt_save = ceil(NT/n_save);
-zNew = zeros(n_save,NX);
+zNewd = nan(n_save,NX);
 F = zeros(1,NX);
 
 % initialize boundary conditions on h
 h_last(1,:) = z;
-zNew(1,:) = h_last;
+zNewd(1,:) = h_last;
 
 % initialize boundary conditions on F
 % F is dQ/dx
@@ -66,8 +63,8 @@ dQdx = zeros(1,NX);
 nud2hdx2 = zeros(1,NX);
 j_save = 0;
 [~,imax] = max(h_last);
+
 for j = 1:NT
-    % find Dhigh?
     
     % spatial derivatives:
     for i= 2:(NX-1)
@@ -89,8 +86,11 @@ for j = 1:NT
     % save results
     if ( (j-nt_save) > (j_save*nt_save))
         j_save = j_save + 1;
-        zNew(j_save,:) = h_last;
-        fprintf('j = %d\r', j); 
+        zNewd(j_save,:) = h_last;
+%         fprintf('j = %d\r', j); 
     end
 end
+
+inan = find (sum(isnan(zNewd),2)==0);
+zNew = zNewd (inan(end),:)';
 

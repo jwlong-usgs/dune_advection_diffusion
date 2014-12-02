@@ -18,7 +18,7 @@ load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_D_all
 % convert to model format
 clearvars -except xbliteGRIDS100 xb profiles nu xbliteHydro xbliteD_all
 
-profiles=4500; %2884;
+profiles=2884; %5568; %2884;%4500; %
 % model coefficients
 nuval=0.005;
 vfac=10; % single value, may want to change
@@ -34,8 +34,8 @@ S=xbliteHydro.Sts(:,profiles)';
 surge=xbliteHydro.wlts(:,profiles)';
 T=xbliteHydro.Tts(:,profiles)';
 Ho=xbliteHydro.Hts(:,profiles)';
-Bo= -xbliteD_all(profiles,14); %-xb.dlowslope(profiles,1);   % foreshore slope: 
-
+Bo= -xb.dlowslope(profiles,1);%-xbliteD_all(profiles,14); %   % foreshore slope: 
+Bf= -xbliteD_all(profiles,14);
 %% Models
 
 
@@ -54,6 +54,8 @@ for i=1:length(profiles)
     countc(i)=0;
     zNewl=nan(length(t),length(z(1).data(:,1))); % test difference between coll/diff coll
     Dlowi=Dlow(1);
+ 
+
 %     Dlows=nan(length(t),length(z(1).data(:,1))); % change to structure if run on multiple profiles
     for j=1:length(t)
             % INUNDATION
@@ -68,9 +70,8 @@ for i=1:length(profiles)
         
             % OVERWASH
         if twl(i,j)>=Dhigh(i,j) && surge(i,j)+setup(i,j)<Dhigh(i,j)
-            [zNew] = dune_advection_diffusion(x(i).data(:,1),z(i).data(:,j),vfac,nu);
-            [Dlowx(i,j+1), Dlow(i,j+1), Dhighx(i,j+1), Dhigh(i,j+1)]=find_dlow_dhigh(x(i).data(:,1),zNew);
-            z(i).data(:,j+1)=zNew;
+            [z(i).data(:,j+1)] = dune_advection_diffusion(x(i).data(:,1),z(i).data(:,j),vfac,nu);
+            [Dlowx(i,j+1), Dlow(i,j+1), Dhighx(i,j+1), Dhigh(i,j+1)]=find_dlow_dhigh(x(i).data(:,1),z(i).data(:,j+1),zeros(size(x(i).data(:,1))));
             counto(i)=counto(i)+1;
             
             
@@ -79,7 +80,7 @@ for i=1:length(profiles)
             % if we want to run multiple profiles, will have to change
             % Dlows to a structure.
             [zNewl(j,:),dVResidual(i,j+1),Dlows(countc+1,:),dV(j,1)] = LEH04_notime(x(i).data(:,1),z(i).data(:,j),...
-                Dlow(i,j),Dlowi,Dlowx(i,j),3600,surge(i,j),T(i,j),Bo(i,1),R2(i,j),setup(i,j),S(i,j),dVResidual(i,j)); %add back Cs later
+                Dlow(i,j),Dlowi,Dlowx(i,j),3600,surge(i,j),T(i,j),Bo(i,1),R2(i,j),setup(i,j),S(i,j),dVResidual(i,j),Bf(i,1)); %add back Cs later
             
             [~,~,~,imin]=extreme(zNewl(j,:));
            %keyboard
@@ -90,7 +91,7 @@ for i=1:length(profiles)
             gridx=sort(imin);
             gridrx=gridx(2); % make sure this is pulling the second low
    
-            [zNew] = dune_diffusion(x(i).data(:,1),zNewl(j,:),nu,vfac,gridrx); % slopec,
+            [zNew] = dune_diffusion(x(i).data(:,1),zNewl(j,:),nu,vfac,gridrx); 
             [Dlowx(i,j+1), Dlow(i,j+1), Dhighx(i,j+1), Dhigh(i,j+1)]=find_dlow_dhigh(x(i).data(:,1),zNew,Dlows(1,:)');
             z(i).data(:,j+1)=zNew(:,1);
             countc(i)=countc(i)+1
@@ -105,6 +106,7 @@ for i=1:length(profiles)
             Dlow(i,j+1)=Dlow(i,j);
             Dlowx(i,j+1)=Dlowx(i,j);
         end
+        nu=nuval.*ones(size(z(i).data(:,1))); 
     end
 end
 
@@ -115,6 +117,7 @@ subplot(2,1,1)
 plot(x(1).data,Dlows(1,:))
 hold on
 plot(x(1).data,zNewl')
+
 title(['nu = ' num2str(nuval)])
 
 subplot(2,1,2)
@@ -130,6 +133,7 @@ figure;
 hold on; plot(surge(profile,:)+R2(profile,:))
 plot(Dlow(profile,:))
 plot(Dhigh(profile,:))
-box ongrid on
+box on
+grid on
 title 'hydro vs time dependent dune'
 legend('TWL','D_l_o_w','D_h_i_g_h')
