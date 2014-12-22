@@ -10,15 +10,20 @@
 %% Load Variables
 % these variables only need to be loaded once. if you want to run different
 % profiles, I would suggest evaluating the code in sections.
-load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_HYDRO.mat'
-load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_GRIDS100.mat'
-load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\xblite_parameters\xb_parameters.mat'
-load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_D_all.mat'
+load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_HYDRO_coawst_cut.mat'
+load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_GRIDS100_coawst.mat'
+load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\xblite_parameters\xb_parameters_coawst.mat'
+load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\XB_D_all_coawst.mat'
 %% Convert Variables
 % convert to model format
 clearvars -except xbliteGRIDS100 xb profiles nu xbliteHydro xbliteD_all
 
-profiles=2884; %5568; %2884;%4500; %
+profiles=73; %ROWS HAVE CHANGED UPLOAD ROWS FILE IF NEEDED, in general:
+% load '\\igsafpesvs002\StPetersburg-G_Shared\NACCH\Model\Data\Sandy_2012\rows.mat'
+%2884==73;
+% other points around old profiles available
+%5568-->no longer available;
+%4500-->no longer available;
 % model coefficients
 nuval=0.005;
 vfac=10; % single value, may want to change
