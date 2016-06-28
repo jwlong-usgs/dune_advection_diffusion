@@ -77,7 +77,7 @@ for i=1:length(profiles)
         if twl(i,j)>=Dhigh(i,j) && surge(i,j)+setup(i,j)<Dhigh(i,j)
             [z(i).data(:,j+1)] = dune_advection_diffusion(x(i).data(:,1),z(i).data(:,j),vfac,nu);
             [Dlowx(i,j+1), Dlow(i,j+1), Dhighx(i,j+1), Dhigh(i,j+1)]=find_dlow_dhigh(x(i).data(:,1),z(i).data(:,j+1),zeros(size(x(i).data(:,1))));
-            counto(i)=counto(i)+1;
+            counto(i)=counto(i)+1
             
             
             % COLLISION
@@ -85,7 +85,7 @@ for i=1:length(profiles)
             % if we want to run multiple profiles, will have to change
             % Dlows to a structure.
             [zNewl(j,:),dVResidual(i,j+1),Dlows(countc+1,:),dV(j,1)] = LEH04_notime(x(i).data(:,1),z(i).data(:,j),...
-                Dlow(i,j),Dlowi,Dlowx(i,j),3600,surge(i,j),T(i,j),Bo(i,1),R2(i,j),setup(i,j),S(i,j),dVResidual(i,j),Bf(i,1)); %add back Cs later
+                Dlow(i,j),Dlowi,Dlowx(i,j),3600,surge(i,j),T(i,j),Bo(i,1),R2(i,j),setup(i,j),S(i,j),dVResidual(i,j),Bf(i,1),2e-4); %add back Cs later
             
             [~,~,~,imin]=extreme(zNewl(j,:));
            %keyboard
@@ -112,6 +112,7 @@ for i=1:length(profiles)
             Dlowx(i,j+1)=Dlowx(i,j);
         end
         nu=nuval.*ones(size(z(i).data(:,1))); 
+        plot(x(i).data,z(i).data); title(j); 
     end
 end
 
@@ -128,8 +129,8 @@ title(['nu = ' num2str(nuval)])
 subplot(2,1,2)
 plot(x(1).data,z(1).data)
 hold on;
-plot(x(1).data,fliplr(xbliteGRIDS100.pre.cZi(profiles).data),'--','LineWidth',2)
-plot(x(1).data,fliplr(xbliteGRIDS100.post.cZi(profiles).data),'--','LineWidth',2)
+plot(x(1).data,fliplr(xbliteGRIDS100.pre.cZi(profiles).data),'b--','LineWidth',2)
+plot(x(1).data,fliplr(xbliteGRIDS100.post.cZi(profiles).data),'r--','LineWidth',2)
 plot(x(1).data,Dlows(1,:))
 
 %% plot hydro
