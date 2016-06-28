@@ -51,7 +51,7 @@ dt = dt/m;
 
 % propose to run it for some amount of time
 T = 6*L/(2*cmax); 
-NT = T/dt;
+NT = T/(10*dt);
 
 % initialize calculation arrays (save n_save times)
 n_save = 100;
